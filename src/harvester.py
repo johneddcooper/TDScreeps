@@ -9,7 +9,7 @@ __pragma__('noalias', 'set')
 __pragma__('noalias', 'type')
 __pragma__('noalias', 'update')
 
-
+# a
 def run_harvester(creep):
     """
     Runs a creep as a generic harvester.

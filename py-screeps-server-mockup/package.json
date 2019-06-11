@@ -1,0 +1,17 @@
+{
+  "name": "py-screeps-server-mockup",
+  "version": "1.0.0",
+  "description": "A python bridge to run screeps-server-mockup",
+  "main": "jsbridge.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}

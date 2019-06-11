@@ -93,6 +93,7 @@ env
 .screeps-email
 config.json
 __py_build__/
+.vscode/
 
 # Misc files #
 ##############

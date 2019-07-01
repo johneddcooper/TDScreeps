@@ -57,7 +57,10 @@ def test_start_server(pyjsbridge):
 def test_tick_server_once(pyjsbridge):
     pyjsbridge.make_stub_world()
     pyjsbridge.start_server()
-    assert 'gametime' in pyjsbridge.tick()[0]
+    response = pyjsbridge.tick()
+    assert len(response) == 1
+    assert 'gametime' in response[0]
+    assert response[0]['gametime'] == 2
     
 def test_tick_server_multi(pyjsbridge):
     pyjsbridge.make_stub_world()
@@ -65,14 +68,35 @@ def test_tick_server_multi(pyjsbridge):
     r = pyjsbridge.tick(ticks = 5)
     assert len(r) == 5
     assert r[0]['gametime'] == 2
+    assert r[4]['gametime'] == 6
 
 def test_add_bot_to_server(pyjsbridge):
     pyjsbridge.make_stub_world()
     assert pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, "function () {console.log('Tickbot!',Game.time);") == True
     
-def test_capture_bot_logs_on_tick(pyjsbridge):
+def test_capture_single_bot_logs_on_tick(pyjsbridge):
     pyjsbridge.reset_world()
     pyjsbridge.make_stub_world()
-    pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, "function () {console.log('Tickbot!',Game.time);")
+    pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, """function () {\n    console.log('Tickbot!',Game.time);\n}""")
     pyjsbridge.start_server()
-    assert 'Tick' in pyjsbridge.tick(ticks = 3)[0]['logs']
+    response = pyjsbridge.tick(ticks = 3)
+    assert len(response) == 3
+    assert len(response[0]['logs']['bot_logs']) == 1
+    assert 'Tickbot' in response[0]['logs']['bot_logs'][0]
+    assert 'Tickbot' in response[2]['logs']['bot_logs'][0]
+
+# def test_capture_multiple_bot_logs_on_tick(pyjsbridge):
+#     pyjsbridge.reset_world()
+#     pyjsbridge.make_stub_world()
+#     pyjsbridge.add_bot('TickBot1', 'W0N1', 15, 15, """function () {\n    console.log('Tickbot1!',Game.time);\n}""")
+#     pyjsbridge.add_bot('TickBot2', 'W0N2', 15, 15, """function () {\n    console.log('Tickbot2!',Game.time);\n}""")
+#     pyjsbridge.add_bot('TickBot3', 'W0N3', 15, 15, """function () {\n    console.log('Tickbot3!',Game.time);\n}""")
+    
+#     pyjsbridge.start_server()
+#     response = pyjsbridge.tick(ticks = 1)
+#     assert len(response) == 1
+#     assert len(response[0]['logs']['bot_logs']) == 3
+#     assert 'Tickbot1' in response[0]['logs']['bot_logs'][0]
+#     assert 'Tickbot2' in response[0]['logs']['bot_logs'][1]
+#     assert 'Tickbot3' in response[0]['logs']['bot_logs'][2]
+    

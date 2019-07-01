@@ -5,7 +5,6 @@ var bodyParser = require('body-parser');
 const { ScreepsServer } = require('./screeps-server-mockup');
 const _ = require('./screeps-server-mockup/node_modules/lodash');
 const server = new ScreepsServer();
-var bots = []
 var bot_logs = []
 
 const tickbot = require('./tick-bot')
@@ -19,6 +18,7 @@ app.post('/',function(req,res){
 
 app.post('/reset',async function(req,res){
 	console.log("Resetting world.");
+	bots = []
 	var result
 	try{
 		await server.world.reset();
@@ -66,7 +66,6 @@ app.post('/world/addRoom',async function(req,res){
 });
 
 app.post('/start_server',async function(req,res){
-	bot_logs = []
 	console.log("Starting server");
 	try{
 		await server.start()
@@ -79,20 +78,24 @@ app.post('/start_server',async function(req,res){
 });
 
 app.post('/tick',async function(req,res){
+	bot_logs = []
+	notification_logs = []
 	try{
-
-		bots.forEach(bot => {
-			bot.emit('console', ['log'], ['results'], bot.id, bot.username)
-		});
 		await server.tick()
 		console.log('Tick '+ await server.world.gameTime)
-		console.log("bot logs "+bot_logs)
-		res.status(200).json({'logs': bot_logs, 'gametime': await server.world.gameTime})
+		try{
+			_.each(await bot.newNotifications, ({ message }) => notification_logs.push('[notification]', message));
+        }//console.log('[memory]', await bot.memory, '\n');
+		catch(ReferenceError){
+			
+		}
+		res.status(200).json({'logs': {'bot_logs': bot_logs, 'notification_logs': notification_logs}, 'gametime': await server.world.gameTime})
 	}
 	catch(error){
 		console.log(error)
 		res.status(500).json({"error":error})
 	}
+
 });
 
 app.post('/stop',async function(req,res){
@@ -111,20 +114,21 @@ app.post('/stop',async function(req,res){
 app.post('/world/addBot',async function(req,res){
 	const username = req.body.msg.username;
 	const room = req.body.msg.room;
-	const x = req.body.msg.x;
-	const y = req.body.msg.y;
+	const x = parseInt(req.body.msg.x);
+	const y = parseInt(req.body.msg.y);
 	const modules = {
-		//main: `module.exports.loop = ${req.body.msg.main}`,
-		main: `module.exports.loop = ${tickbot.main.toString()}`,
+		main: `module.exports.loop = ${req.body.msg.main}`,
+		//main: `module.exports.loop = ${tickbot.main.toString()}`,
 	}
+	console.log(req.body.msg.main)
+	console.log(tickbot.main.toString())
 
 	console.log("Adding bot: "+ username+" "+room+" "+x+" "+y);
 	try{
-		bot = await server.world.addBot(username, room, x, y, modules);
+		bot = await server.world.addBot({username: username, room: room, x: x, y: y, modules});
 		bot.on('console', (logs, results, userid, username) => {
-			_.each(logs, line => console.log(`[console|${username}]`, line));
-		});
-		bots.push(bot)
+            _.each(logs, line => bot_logs.push(`[console|${username}] ${line}`));
+        });
 		res.status(201).send()
 	}
 	catch(error){

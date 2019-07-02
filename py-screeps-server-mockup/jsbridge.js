@@ -6,6 +6,7 @@ const { ScreepsServer } = require('./screeps-server-mockup');
 const _ = require('./screeps-server-mockup/node_modules/lodash');
 const server = new ScreepsServer();
 var bot_logs = []
+var bots = []
 
 const tickbot = require('./tick-bot')
 
@@ -78,18 +79,25 @@ app.post('/start_server',async function(req,res){
 });
 
 app.post('/tick',async function(req,res){
-	bot_logs = []
-	notification_logs = []
+	bot_logs = {};
+	notification_logs = {};
+	memory_logs = {};
+
+	_.forEach(bots, function(bot){
+		bot_logs[bot.username] = [];
+	});
+
 	try{
-		await server.tick()
-		console.log('Tick '+ await server.world.gameTime)
-		try{
-			_.each(await bot.newNotifications, ({ message }) => notification_logs.push('[notification]', message));
-        }//console.log('[memory]', await bot.memory, '\n');
-		catch(ReferenceError){
-			
-		}
-		res.status(200).json({'logs': {'bot_logs': bot_logs, 'notification_logs': notification_logs}, 'gametime': await server.world.gameTime})
+		await server.tick();
+		console.log('Tick '+ await server.world.gameTime);
+		
+		for (const bot of bots){
+			notifications = [];
+			_.forEach(await bot.newNotifications, ({ message }) => notifications.push('[notification]', message));
+			notification_logs[bot.username] = notifications;
+			memory_logs[bot.username] = JSON.parse(await bot.memory);
+		};
+		res.status(200).json({'logs': {'bot_logs': bot_logs, 'notification_logs': notification_logs, 'memory_logs': memory_logs}, 'gametime': await server.world.gameTime})
 	}
 	catch(error){
 		console.log(error)
@@ -120,15 +128,14 @@ app.post('/world/addBot',async function(req,res){
 		main: `module.exports.loop = ${req.body.msg.main}`,
 		//main: `module.exports.loop = ${tickbot.main.toString()}`,
 	}
-	console.log(req.body.msg.main)
-	console.log(tickbot.main.toString())
 
 	console.log("Adding bot: "+ username+" "+room+" "+x+" "+y);
 	try{
 		bot = await server.world.addBot({username: username, room: room, x: x, y: y, modules});
 		bot.on('console', (logs, results, userid, username) => {
-            _.each(logs, line => bot_logs.push(`[console|${username}] ${line}`));
-        });
+            _.each(logs, line => bot_logs[bot.username].push(`[console|${username}] ${line}`));
+		});
+		bots.push(bot)
 		res.status(201).send()
 	}
 	catch(error){

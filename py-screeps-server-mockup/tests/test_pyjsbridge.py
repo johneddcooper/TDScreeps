@@ -23,9 +23,9 @@ def test_can_start_stop_jsbridge_process():
     time.sleep(0.1)
     assert pyb.jsbridge_process != None
     pyb._stop_jsbridge()
-    time.sleep(0.1)
-    assert pyb.jsbridge_process.poll() == 1
-    assert pyb.jsbridge_process.returncode == 1
+    time.sleep(0.2)
+    assert pyb.jsbridge_process.poll() != None
+    assert pyb.jsbridge_process.returncode == 0
 
 def test_jsbridge_echos_JSON_on_root(pyjsbridge):
     r = pyjsbridge._msg_jsbridge({"msg": "MsgString"})

@@ -133,7 +133,7 @@ app.post('/world/addBot',async function(req,res){
 	try{
 		bot = await server.world.addBot({username: username, room: room, x: x, y: y, modules});
 		bot.on('console', (logs, results, userid, username) => {
-            _.each(logs, line => bot_logs[bot.username].push(`[console|${username}] ${line}`));
+            _.each(logs, line => bot_logs[username].push(`[console|${username}] ${line}`));
 		});
 		bots.push(bot)
 		res.status(201).send()

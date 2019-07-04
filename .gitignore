@@ -103,6 +103,7 @@ __py_build__/
 docs/_build/
 *\ Notes.txt
 .mypy_cache
+*.json
 
 # Unit test / coverage reports #
 ################################
@@ -115,3 +116,4 @@ coverage.xml
 /config.json
 /git-cloned/
 /markdown/
+.pytest_cache*

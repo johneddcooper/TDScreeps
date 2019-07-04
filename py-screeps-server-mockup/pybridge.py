@@ -6,9 +6,8 @@ import sys
 import os
 sys.path.append('../../')
 from definitions import ROOT_DIR
-
 path_to_jsbridge = os.path.join(ROOT_DIR, 'py-screeps-server-mockup/jsbridge.js')
-# path_to_jsbridge = 'C:\\Users\\John\\Documents\\Programming\\TDScreeps\\py-screeps-server-mockup\\jsbridge.js'
+
 jsbridge_url = "http://localhost:3000"
 headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 

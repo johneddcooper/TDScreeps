@@ -3,4 +3,4 @@
 	url = https://github.com/Hiryus/screeps-server-mockup
 [submodule "screeps-starter-python"]
 	path = screeps-starter-python
-	url = https://github.com/daboross/screeps-starter-python
+	url = https://github.com/johneddcooper/screeps-starter-python

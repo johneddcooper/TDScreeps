@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.append('../../')
+sys.path.append('./')
 from definitions import ROOT_DIR
 sys.path.append(os.path.join(ROOT_DIR, 'py-screeps-server-mockup'))
 
@@ -27,10 +27,8 @@ def test_can_start_stop_jsbridge_process():
     pyb._start_jsbridge()
     time.sleep(0.1)
     assert pyb.jsbridge_process != None
-    pyb._stop_jsbridge()
-    time.sleep(0.2)
+    assert pyb._stop_jsbridge() != None
     assert pyb.jsbridge_process.poll() != None
-    assert pyb.jsbridge_process.returncode == 0
 
 def test_jsbridge_echos_JSON_on_root(pyjsbridge):
     r = pyjsbridge._msg_jsbridge({"msg": "MsgString"})

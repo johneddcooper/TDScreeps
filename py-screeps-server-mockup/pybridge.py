@@ -19,6 +19,7 @@ class PyBridge:
     def _stop_jsbridge(self):
         requests.post(jsbridge_url+"/stop", timeout = 2)
         self.jsbridge_process.kill()
+        return self.jsbridge_process.wait()
 
     def _msg_jsbridge(self, data:dict, timeout=5):
         return requests.post(jsbridge_url, data=json.dumps(data), headers=headers, timeout = 5)    

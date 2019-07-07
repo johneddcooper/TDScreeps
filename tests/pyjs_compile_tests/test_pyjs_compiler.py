@@ -26,7 +26,7 @@ def test_make_folders_allows_empty_version():
     pjc._make_build_folders("test_build",None)
     assert os.path.isdir(pjc._get_build_path("test_build"))
     assert os.path.isdir(os.path.join(pjc._get_build_path("test_build"), 'src'))
-    assert os.path.isdir(os.path.join(pjc._get_build_path("test_build"), 'comp'))
+    assert os.path.isdir(os.path.join(pjc._get_build_path("test_build"), 'dist'))
     pjc._remove_build_folders('test_build')
 
 def test_make_folders_allows_version_to_be_type_int():
@@ -68,13 +68,13 @@ def test_remove_un_versoned_src_files():
 def test_compile_from_string_makes_folders_from_build_dir_and_version():
     pjc.compile_from_string("", build_name = "test_build", version = "0.1")
     assert os.path.isdir(os.path.join(pjc._get_version_path("test_build", "0.1"), 'src'))
-    assert os.path.isdir(os.path.join(pjc._get_version_path("test_build", "0.1"), 'comp'))
+    assert os.path.isdir(os.path.join(pjc._get_version_path("test_build", "0.1"), 'dist'))
     pjc._remove_build_folders("test_build")
 
 def test_compile_from_string_makes_folders_from_build_dir_no_version():
     pjc.compile_from_string("", build_name = "test_build")
     assert os.path.isdir(os.path.join(pjc._get_build_path("test_build"), 'src'))
-    assert os.path.isdir(os.path.join(pjc._get_build_path("test_build"), 'comp'))
+    assert os.path.isdir(os.path.join(pjc._get_build_path("test_build"), 'dist'))
     pjc._remove_build_folders("test_build")
 
 def test_compile_from_string_makes_and_removes_folders_from_no_build_dir():
@@ -89,6 +89,31 @@ def test_correctly_writes_string_to_file(test_build_folder):
         lines = readfile.readlines()
         assert lines[0] == "def main():\n"
         assert lines[1] == "\tprint('test_func')"
+
+def test_pyjs_compiler_can_import_build_module():
+    assert pjc.build != None
+
+def test_builds_to_file_from_valid_simple_source_string():
+    src = """
+def main():
+\tprint("test_build_print") 
+module.exports.loop = main
+"""
+    pjc.compile_from_string(src, build_name="test_build")
+    assert os.path.isfile(os.path.join(pjc._get_compiled_path("test_build"), 'main.js'))
+    with open(os.path.join(pjc._get_compiled_path("test_build"), 'main.js'), 'r') as built_file:
+        built_src = built_file.read()
+        assert "test_build_print" in built_src
+    pjc._remove_build_folders("test_build")
+    
+def test_builds_from_valid_simple_source_string_and_returns_compiled_string():
+    src = """
+def main():
+\tprint("test_build_print") 
+module.exports.loop = main
+"""
+    js_src = pjc.compile_from_string(src)
+    assert "test_build_print" in js_src
 
 # test can build py file to js
 

@@ -13,6 +13,9 @@ headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
 class PyBridge:
 
+    def __del__(self):
+        self._stop_jsbridge()
+
     def _start_jsbridge(self):
         self.jsbridge_process = Popen(["node",path_to_jsbridge])
 

@@ -9,6 +9,7 @@ var bot_logs = []
 var bots = []
 
 const tickbot = require('./tick-bot')
+const mainbot = require('./main')
 
 app.use(bodyParser.json())
 app.post('/',function(req,res){
@@ -125,9 +126,13 @@ app.post('/world/addBot',async function(req,res){
 	const x = parseInt(req.body.msg.x);
 	const y = parseInt(req.body.msg.y);
 	const modules = {
-		main: `module.exports.loop = ${req.body.msg.main}`,
-		//main: `module.exports.loop = ${tickbot.main.toString()}`,
+		//main: `module.exports.loop = function()${req.body.msg.main}`,
+		//main: `module.exports.loop = ${mainbot.loop.toString()}`,
+		main: tickbot.main.toString(),
 	}
+	//console.log("msg.main", req.body.msg.main)
+	//console.log("mainbot", mainbot.loop.toString())
+	//console.log("tickbot", tickbot.main.toString())
 
 	console.log("Adding bot: "+ username+" "+room+" "+x+" "+y);
 	try{

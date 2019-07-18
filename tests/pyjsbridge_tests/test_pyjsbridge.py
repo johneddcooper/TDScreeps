@@ -2,11 +2,10 @@ import sys
 import os
 sys.path.append('./')
 from definitions import ROOT_DIR
-sys.path.append(os.path.join(ROOT_DIR, 'py-screeps-server-mockup'))
+from definitions import PyBridge
 
 import time
 import subprocess
-from pybridge import PyBridge
 import pytest
 import json
 
@@ -87,6 +86,18 @@ def test_capture_single_bot_logs_on_tick(pyjsbridge):
     assert len(response[0]['logs']['bot_logs']) == 1
     assert 'TickBot_out' in response[0]['logs']['bot_logs']['TickBot'][0]
     assert 'TickBot_out' in response[2]['logs']['bot_logs']['TickBot'][0]
+
+def test_capture_error_on_invalid_string(pyjsbridge):
+    pyjsbridge.reset_world()
+    pyjsbridge.make_stub_world()
+    pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, """function () {\n    console.logg('TickBot_out!',Game.time);\n}""")
+    pyjsbridge.start_server()
+    response = pyjsbridge.tick(ticks = 1)
+    assert len(response) == 1
+    assert len(response[0]['logs']['notification_logs']) == 1
+    assert 'notification' in response[0]['logs']['notification_logs']['TickBot'][0]
+    assert 'TypeError' in response[0]['logs']['notification_logs']['TickBot'][1]
+  
 
 def test_capture_single_bot_multiple_logs_on_tick(pyjsbridge):
     pyjsbridge.reset_world()

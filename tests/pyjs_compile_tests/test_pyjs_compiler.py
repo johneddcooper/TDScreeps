@@ -115,6 +115,17 @@ module.exports.loop = main
     js_src = pjc.compile_from_string(src)
     assert "test_build_print" in js_src
 
+def test_will_strip_main_func_contents_from_compiled_file():
+    compiled_string = """
+"use strict";
+// Transcrypt'ed from Python, 2019-07-03 20:58:27
+function main () {
+    FunctionBody
+}
+main ();
+"""
+    assert pjc.strip_main_from_js(compiled_string) == "    FunctionBody"
+
 # test can build py file to js
 
 # test compile from string builds

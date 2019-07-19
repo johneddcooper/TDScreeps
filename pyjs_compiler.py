@@ -40,12 +40,15 @@ def _write_string_to_file(path, src):
     with open(path, "w") as text_file:
         text_file.write(src)
 
-def strip_main_from_js(js_src):
-    re_match_string = r"function main \(\) \{\n(.*)\n}\nmain \(\);"
-    match = re.search(re_match_string, js_src, re.DOTALL)
-    if match:
-        code = match.group(1)
-    return code
+def alter_main_for_running(js_src):
+    return js_src.replace("};\n\t\t__", "};\n\t\tmodule.exports.loop = main;\n\t\t__")
+
+
+    #re_match_string = r"(function.*)\nmain \(\);" #Matched end main()
+    # match = re.search(re_match_string, js_src, re.DOTALL)
+    # if match:
+    #     code = match.group(1)
+    # return code
 
 def compile_from_string(src, build_name = None, version = ""):
     do_adhoc_build = not build_name
@@ -69,4 +72,5 @@ def compile_from_string(src, build_name = None, version = ""):
     if do_adhoc_build:
         _remove_build_folders(build_name)
 
-    return strip_main_from_js(js_src)
+    return alter_main_for_running(js_src)
+

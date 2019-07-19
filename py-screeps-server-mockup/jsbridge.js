@@ -126,17 +126,19 @@ app.post('/world/addBot',async function(req,res){
 	const x = parseInt(req.body.msg.x);
 	const y = parseInt(req.body.msg.y);
 	const modules = {
-		//main: `module.exports.loop = function()${req.body.msg.main}`,
+		main: "module.exports.loop = " + req.body.msg.main,
 		//main: `module.exports.loop = ${mainbot.loop.toString()}`,
-		main: tickbot.main.toString(),
+		//main: `module.exports.loop = ${tickbot.main.toString()}`,
 	}
+	//console.log(modules)
 	//console.log("msg.main", req.body.msg.main)
 	//console.log("mainbot", mainbot.loop.toString())
+	//console.log("AAAAAAA")
 	//console.log("tickbot", tickbot.main.toString())
 
 	console.log("Adding bot: "+ username+" "+room+" "+x+" "+y);
 	try{
-		bot = await server.world.addBot({username: username, room: room, x: x, y: y, modules});
+		bot = await server.world.addBot({username: username, room: room, x: x, y: y, modules: modules});
 		bot.on('console', (logs, results, userid, username) => {
             _.each(logs, line => bot_logs[username].push(`[console|${username}] ${line}`));
 		});

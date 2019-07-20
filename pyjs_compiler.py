@@ -27,7 +27,7 @@ def _make_build_folders(build_name, version = ""):
     os.makedirs(os.path.join(_get_version_path(build_name, version), 'src'))
     os.makedirs(os.path.join(_get_version_path(build_name, version), 'dist'))
 
-def _remove_build_folders(build_name):
+def remove_build_folders(build_name):
     shutil.rmtree(_get_build_path(build_name))
 
 def _remove_src_files(build_name, version = ""):
@@ -42,7 +42,6 @@ def _write_string_to_file(path, src):
 
 def alter_main_for_running(js_src):
     return js_src.replace("};\n\t\t__", "};\n\t\tmodule.exports.loop = main;\n\t\t__")
-
 
     #re_match_string = r"(function.*)\nmain \(\);" #Matched end main()
     # match = re.search(re_match_string, js_src, re.DOTALL)
@@ -70,7 +69,22 @@ def compile_from_string(src, build_name = None, version = ""):
         js_src_file.close()
     
     if do_adhoc_build:
-        _remove_build_folders(build_name)
+        remove_build_folders(build_name)
 
     return alter_main_for_running(js_src)
 
+def make_project(build_name, version=""):
+    _make_build_folders(build_name,version)
+    src_path = _get_src_path(build_name)
+    shutil.copytree(os.path.join(ROOT_DIR, "screeps-starter-python","src","defs"), os.path.join(src_path,"defs"))
+    shutil.copyfile(os.path.join(ROOT_DIR, "screeps-starter-python","blank_main.py"), os.path.join(src_path,"main.py"))
+    return src_path, _get_compiled_path(build_name, version)
+
+def compile_build(build_name, version = ""):
+    src_dir = _get_src_path(build_name, version=version)
+    dist_dir = _get_compiled_path(build_name, version=version)
+    build(src_dir, dist_dir)
+    with open(os.path.join(dist_dir, 'main.js'), 'r') as js_src_file:
+        js_src = js_src_file.read()
+        js_src_file.close()
+    return alter_main_for_running(js_src)

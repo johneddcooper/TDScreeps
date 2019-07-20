@@ -8,8 +8,8 @@ const server = new ScreepsServer();
 var bot_logs = []
 var bots = []
 
-const tickbot = require('./tick-bot')
-const mainbot = require('./main')
+//const tickbot = require('./tick-bot')
+//const mainbot = require('./main')
 
 app.use(bodyParser.json())
 app.post('/',function(req,res){
@@ -130,11 +130,6 @@ app.post('/world/addBot',async function(req,res){
 		//main: `module.exports.loop = ${mainbot.loop.toString()}`,
 		//main: `module.exports.loop = ${tickbot.main.toString()}`,
 	}
-	//console.log(modules)
-	//console.log("msg.main", req.body.msg.main)
-	//console.log("mainbot", mainbot.loop.toString())
-	//console.log("AAAAAAA")
-	//console.log("tickbot", tickbot.main.toString())
 
 	console.log("Adding bot: "+ username+" "+room+" "+x+" "+y);
 	try{

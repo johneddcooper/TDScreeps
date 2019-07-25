@@ -7,6 +7,7 @@ from definitions import PyBridge
 import pytest
 import pyjs_compiler as pjc
 import os
+import shutil
 
 def test_compile_simple_main_from_valid_string():
     # We have a bit of test code as a string to compile
@@ -132,3 +133,37 @@ def test_compile_complex_main_from_dir():
     finally:
         # And make a call to pyjs_compiler to remove the built folders
         pjc.remove_build_folders(build_name)
+
+def test_run_tests_from_dir():
+    # We want to start a new persistant build, add some python code to the files, and run some tests against them
+
+    # We call a method from the commandline from pyjs_compiler to make a new build
+    ##TODO## Make below command line (?)
+    build_name = "my_project"
+    try:
+        src_path, comp_path = pjc.make_project(build_name)
+
+        # The compiler makes a test directory for us
+        assert os.path.isdir(os.path.join(pjc._get_build_path(build_name),'tests'))
+
+        # We copy in the src files we want
+        
+        shutil.copy(os.path.join(ROOT_DIR, 'screeps-starter-python','src',"main.py"), os.path.join(src_path, "main.py"))
+        shutil.copy(os.path.join(ROOT_DIR, 'screeps-starter-python','src',"harvester.py"), os.path.join(src_path, "harvester.py"))
+
+        # We create and add source code into our tests
+        tests_file_src="def get_game_time(game):\n\treturn game.time;"
+        with open(os.path.join(src_path, "gametime.py"), "w") as f:
+            f.write(second_file_src)
+            f.close()     
+
+        # We use pyjs_compiler to build the files
+        js_src = pjc.compile_build(build_name)
+
+        # We pass the string it returns to the mock-server, which we run and tick
+        bridge = PyBridge()
+        bridge._start_jsbridge()
+        bridge.make_stub_world()
+        bridge.add_bot('TickBot', 'W0N1', 15, 15, js_src)
+        bridge.start_server()
+        response = bridge.tick(ticks = 1)

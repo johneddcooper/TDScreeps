@@ -13,16 +13,22 @@ headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
 class PyBridge:
 
+    active = False
+
     def __del__(self):
         self._stop_jsbridge()
 
     def _start_jsbridge(self):
         self.jsbridge_process = Popen(["node",path_to_jsbridge])
+        self.active = True
 
     def _stop_jsbridge(self):
-        requests.post(jsbridge_url+"/stop", timeout = 2)
-        self.jsbridge_process.kill()
-        return self.jsbridge_process.wait()
+        if self.active:
+            requests.post(jsbridge_url+"/stop")
+            self.jsbridge_process.kill()
+            self.active = False
+            return self.jsbridge_process.wait()
+        return True
 
     def _msg_jsbridge(self, data:dict, timeout=5):
         return requests.post(jsbridge_url, data=json.dumps(data), headers=headers, timeout = 5)    

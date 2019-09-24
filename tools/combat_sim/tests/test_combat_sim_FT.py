@@ -15,6 +15,7 @@ def test_determine_one_on_one_winner():
     ranged_screep = Screep(BLUE_TEAM, 0, move=1, range_att=2)
 
     # We set these screeps up at a distance apart
+    
 
     # We run the sim and see the ranged screep wins (by kiting)
 

@@ -117,4 +117,5 @@ def test_screep_maints_distance_from_approching_target():
     s1.move(screeps)
     s2.move(screeps)
     assert s1.posn == 8
-    assert s2.poan == 3
+    assert s2.posn == 3
+    

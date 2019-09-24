@@ -18,15 +18,22 @@ def maint_dist_to_target(self, screeps, dist=1):
         move = delta - dist # Subtract target dist from distance to target to get desired move 
         # 10 - 8 = 2, move right 2
         # 10 - 12 = -2, move left 2
-    
     if delta < 0: # Target is to left of us
-        print(move, self._posn + min(self.speed, abs(move)))
-        return self._posn + min(self.speed, abs(move))
-    else:
+        #print(move, self._posn + min(self.speed, abs(move)))
+        #return self._posn + min(self.speed, abs(move))
+        move = delta + dist
+
+    if self.speed < abs(move):
+        if move < 0:
+            move = -self.speed
+        if move > 0:
+            move = self.speed
+
+    return self._posn + move
         
 
 # Issue: Attempting to move 1 right moves 1 left
-    
+
 class Screep:
 
     move_mods = 0
@@ -66,8 +73,8 @@ class Screep:
         return math.floor(self._posn)
 
     def __init__(self, team:bool, posn:int, move=0, work=0, carry=0, heal=0, melee_att=0, range_att=0, armor=0, target_func=target_closest_to, move_func=lambda self, _: self.posn):
-        if posn < 0:
-            raise Exception('Posn must by >= 0')
+        # if posn < 0:
+        #     raise Exception('Posn must by >= 0')
         self._posn = posn
         self.team = team
         self.move_mods = move

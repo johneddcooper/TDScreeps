@@ -1,7 +1,7 @@
 import sys
 sys.path.append('./')
 
-from screep import BLUETEAM, REDTEAM
+from screep import BLUETEAM, REDTEAM, MELEE_ATT_DMG, MELEE_ATT_RANGE, RANGED_ATT_DMG, RANGED_ATT_RANGE
 from screep import Screep
 import screep
 import combat_sim
@@ -101,20 +101,83 @@ def test_maint_dist_moves_multi_screeps_complex_posns():
     assert s4.posn == -39
 
 def test_screep_maints_distance_from_approching_target():
-    s1 = Screep(REDTEAM, 8, move=1, move_func=lambda self, screeps:screep.maint_dist_to_target(self, screeps, 6))
+    s1 = Screep(REDTEAM, 8, move=2, move_func=lambda self, screeps:screep.maint_dist_to_target(self, screeps, 6))
     s2 = Screep(BLUETEAM, 0, move=1, move_func=screep.maint_dist_to_target)
     screeps = [s1, s2]
     s1.set_target(screeps)
     s2.set_target(screeps)
     s1.move(screeps)
     s2.move(screeps)
-    assert s1.posn == 7
+    # s1 move closer to get into range
+    assert s1.posn == 6
     assert s2.posn == 1
     s1.move(screeps)
     s2.move(screeps)
+    # s1 move 1 farther, to keep range
     assert s1.posn == 7
     assert s2.posn == 2
     s1.move(screeps)
     s2.move(screeps)
+    # s1 move 1 farther, to keep range
     assert s1.posn == 8
-    assert s2.poan == 3
+    assert s2.posn == 3
+
+def test_screep_melee_attacks_correct_dmg():
+    s1 = Screep(REDTEAM, 1, move=1, melee_att=1)
+    s2 = Screep(BLUETEAM, 0)
+    start_hp = s2.hp
+    s1.set_target([s2])
+    s1.attack([s2])
+    assert s2.hp == start_hp - s1.melee_att_mods * MELEE_ATT_DMG
+
+def test_screep_melee_attacks_only_when_in_range():
+    s1 = Screep(REDTEAM, 1, move=1, melee_att=1, move_func=screep.maint_dist_to_target)
+    s2 = Screep(BLUETEAM, 0)
+    start_hp = s2.hp
+    s1.set_target([s2])
+    s1.attack([s2])
+    assert s2.hp == start_hp
+    s1.move([s2])
+    s1.attack([s2])
+    assert s2.hp == start_hp - s1.melee_att_mods * MELEE_ATT_DMG
+
+def test_screep_ranged_attacks_correct_dmg():
+    s1 = Screep(REDTEAM, 3, move=1, range_att=1)
+    s2 = Screep(BLUETEAM, 0)
+    start_hp = s2.hp
+    s1.set_target([s2])
+    s1.attack([s2])
+    assert s2.hp == start_hp - s1.range_att_mods * RANGED_ATT_DMG
+
+def test_screep_ranged_attacks_only_when_in_range():
+    s1 = Screep(REDTEAM, 4, move=1, range_att=1, move_func=screep.maint_dist_to_target)
+    s2 = Screep(BLUETEAM, 0)
+    start_hp = s2.hp
+    s1.set_target([s2])
+    s1.attack([s2])
+    assert s2.hp == start_hp
+    s1.move([s2])
+    s1.attack([s2])
+    assert s2.hp == start_hp - s1.range_att_mods * RANGED_ATT_DMG
+
+def test_screep_does_not_move_when_dead():
+    s1 = Screep(REDTEAM, 4, move=1, move_func=screep.maint_dist_to_target)
+    s2 = Screep(BLUETEAM, 0)
+    s1.set_target([s2])
+    s1.move([s2])
+    assert s1.posn == 3
+    s1.hp = 0
+    s1.move([s2])
+    assert s1.posn == 3
+
+def test_screep_does_not_attack_when_dead():
+    s1 = Screep(REDTEAM, 1, range_att=1)
+    s2 = Screep(BLUETEAM, 0)
+    start_hp = s2.hp
+    s1.set_target([s2])
+    s1.attack([s2])
+    assert s2.hp < start_hp
+    start_hp = s2.hp
+    s1.hp = 0
+    s1.attack([s2])
+    assert s2.hp == start_hp

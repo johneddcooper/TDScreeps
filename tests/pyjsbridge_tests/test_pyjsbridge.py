@@ -144,6 +144,15 @@ def test_can_spawn_screep_for_single_bot(pyjsbridge):
     response = pyjsbridge.tick(ticks = 1)
     assert len(response[0]['logs']['memory_logs']['TickBot']['creeps']) == 1
 
+def test_logs_report_correct_game_time(pyjsbridge):
+    pyjsbridge.reset_world()
+    pyjsbridge.make_stub_world()
+    pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, """function () {\n    console.log(Game.time);\n}""")
+    pyjsbridge.start_server()
+    response = pyjsbridge.tick(ticks = 3)
+    assert str(response[0]['gametime']) in response[0]['logs']['bot_logs']['TickBot'][0]
+    assert str(response[2]['gametime']) in response[2]['logs']['bot_logs']['TickBot'][0]
+
 # def test_can_spawn_multi_screep_for_single_bot(pyjsbridge):
 #     bot_main = """
 #         function () {

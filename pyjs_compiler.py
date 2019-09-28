@@ -26,7 +26,7 @@ def _make_build_folders(build_name, version = ""):
         version = ""
     os.makedirs(os.path.join(_get_version_path(build_name, version), 'src'))
     os.makedirs(os.path.join(_get_version_path(build_name, version), 'dist'))
-
+    os.makedirs(os.path.join(_get_version_path(build_name, version), 'tests'))
 def remove_build_folders(build_name):
     shutil.rmtree(_get_build_path(build_name))
 

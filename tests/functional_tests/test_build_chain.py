@@ -134,6 +134,7 @@ def test_compile_complex_main_from_dir():
         # And make a call to pyjs_compiler to remove the built folders
         pjc.remove_build_folders(build_name)
 
+@pytest.mark.skip
 def test_run_tests_from_dir():
     # We want to start a new persistant build, add some python code to the files, and run some tests against them
 
@@ -167,3 +168,7 @@ def test_run_tests_from_dir():
         bridge.add_bot('TickBot', 'W0N1', 15, 15, js_src)
         bridge.start_server()
         response = bridge.tick(ticks = 1)
+
+    finally:
+        # And make a call to pyjs_compiler to remove the built folders
+        pjc.remove_build_folders(build_name)

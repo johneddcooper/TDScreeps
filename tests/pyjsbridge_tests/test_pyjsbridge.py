@@ -62,15 +62,15 @@ def test_tick_server_once(pyjsbridge):
     response = pyjsbridge.tick()
     assert len(response) == 1
     assert 'gametime' in response[0]
-    assert response[0]['gametime'] == 2
+    assert response[0]['gametime'] == 1
     
 def test_tick_server_multi(pyjsbridge):
     pyjsbridge.make_stub_world()
     pyjsbridge.start_server()
     r = pyjsbridge.tick(ticks = 5)
     assert len(r) == 5
-    assert r[0]['gametime'] == 2
-    assert r[4]['gametime'] == 6
+    assert r[0]['gametime'] == 1
+    assert r[4]['gametime'] == 5
 
 def test_add_bot_to_server(pyjsbridge):
     pyjsbridge.make_stub_world()

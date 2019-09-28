@@ -83,6 +83,21 @@ def make_project(build_name, version=""):
     src_path = _get_src_path(build_name)
     shutil.copytree(os.path.join(ROOT_DIR, "screeps-starter-python","src","defs"), os.path.join(src_path,"defs"))
     shutil.copyfile(os.path.join(ROOT_DIR, "screeps-starter-python","blank_main.py"), os.path.join(src_path,"main.py"))
+
+    with open("build_test_file_template.py", "r") as f:
+        contents = f.read()
+        f.close()
+
+    contents = contents.replace("{% BUILD_NAME %}", build_name)
+
+    with open(os.path.join(_get_tests_path(build_name, version), "test_build_FT.py"), "w") as f:
+        f.write("".join(contents))
+        f.close()
+
+    with open(os.path.join(_get_tests_path(build_name, version), "test_build_UT.py"), "w") as f:
+        f.write("".join(contents))
+        f.close()
+
     Project = namedtuple('Project', 'src_path comp_path tests_path build_name version')
     return Project(src_path, _get_compiled_path(build_name, version), _get_tests_path(build_name, version), build_name, version)
 

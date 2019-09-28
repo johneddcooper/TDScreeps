@@ -176,7 +176,21 @@ def test_compile_from_directory(temp_test_project):
         f.close()
     assert "console.log ('buildtest:', Game.time);" in file_src
     
-def test_new_project_makes_tests_folder(temp_test_project):
-    test_file = os.path.join(temp_test_project.tests_path, "main.py")
+def test_new_project_makes_tests_folder(temp_test_project):   
     assert temp_test_project.tests_path is not None
     assert os.path.isdir(temp_test_project.tests_path)
+
+def test_new_projects_makes_FT_and_UT_template_files(temp_test_project):
+    ut_file = os.path.join(temp_test_project.tests_path, "test_build_UT.py")
+    ft_file = os.path.join(temp_test_project.tests_path, "test_build_FT.py")
+    assert os.path.isfile(ut_file)
+    assert os.path.isfile(ft_file)
+    with open(ut_file, "r") as f:
+        file_src = f.read()
+        f.close()
+    assert "build_name = test_build" in file_src
+
+    with open(ft_file, "r") as f:
+        file_src = f.read()
+        f.close()
+    assert "build_name = test_build" in file_src

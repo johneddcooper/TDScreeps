@@ -188,9 +188,9 @@ def test_new_projects_makes_FT_and_UT_template_files(temp_test_project):
     with open(ut_file, "r") as f:
         file_src = f.read()
         f.close()
-    assert "build_name = test_build" in file_src
+    assert 'build_name = "test_build"' in file_src
 
     with open(ft_file, "r") as f:
         file_src = f.read()
         f.close()
-    assert "build_name = test_build" in file_src
+    assert 'build_name = "test_build"' in file_src

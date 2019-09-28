@@ -88,7 +88,7 @@ def make_project(build_name, version=""):
         contents = f.read()
         f.close()
 
-    contents = contents.replace("{% BUILD_NAME %}", build_name)
+    contents = contents.replace("{% BUILD_NAME %}", f'"{build_name}"')
 
     with open(os.path.join(_get_tests_path(build_name, version), "test_build_FT.py"), "w") as f:
         f.write("".join(contents))

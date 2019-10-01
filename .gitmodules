@@ -4,3 +4,6 @@
 [submodule "screeps-starter-python"]
 	path = screeps-starter-python
 	url = https://github.com/johneddcooper/screeps-starter-python
+[submodule ".pyjs_builds/basic_screep"]
+	path = .pyjs_builds/basic_screep
+	url = https://github.com/johneddcooper/basic_screep

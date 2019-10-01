@@ -93,7 +93,6 @@ app.post('/tick',async function(req,res){
 		console.log('Tick '+ await server.world.gameTime);
 		
 		for (const bot of bots){
-			console.log("bid "+await bot.rooms)
 			notifications = [];
 			_.forEach(await bot.newNotifications, ({ message }) => notifications.push('[notification]', message));
 			notification_logs[bot.username] = notifications;

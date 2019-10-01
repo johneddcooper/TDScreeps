@@ -6,6 +6,7 @@ import sys
 sys.path.append("./screeps-starter-python")
 from build import build_from_process as build
 import re
+from collections import namedtuple
 
 def _get_build_path(build_name):
     return os.path.join(ROOT_DIR, ".pyjs_builds", str(build_name))
@@ -19,6 +20,9 @@ def _get_src_path(build_name, version = ""):
 def _get_compiled_path(build_name, version = ""):
     return os.path.join(_get_version_path(build_name, version), 'dist')
 
+def _get_tests_path(build_name, version = ""):
+    return os.path.join(_get_version_path(build_name, version), 'tests')
+
 def _make_build_folders(build_name, version = ""):
     if (not build_name):
         raise Exception("build_name must not be empty.")
@@ -26,6 +30,7 @@ def _make_build_folders(build_name, version = ""):
         version = ""
     os.makedirs(os.path.join(_get_version_path(build_name, version), 'src'))
     os.makedirs(os.path.join(_get_version_path(build_name, version), 'dist'))
+    os.makedirs(os.path.join(_get_version_path(build_name, version), 'tests'))
 
 def remove_build_folders(build_name):
     shutil.rmtree(_get_build_path(build_name))
@@ -78,7 +83,23 @@ def make_project(build_name, version=""):
     src_path = _get_src_path(build_name)
     shutil.copytree(os.path.join(ROOT_DIR, "screeps-starter-python","src","defs"), os.path.join(src_path,"defs"))
     shutil.copyfile(os.path.join(ROOT_DIR, "screeps-starter-python","blank_main.py"), os.path.join(src_path,"main.py"))
-    return src_path, _get_compiled_path(build_name, version)
+
+    with open("build_test_file_template.py", "r") as f:
+        contents = f.read()
+        f.close()
+
+    contents = contents.replace("{% BUILD_NAME %}", f'"{build_name}"')
+
+    with open(os.path.join(_get_tests_path(build_name, version), "test_build_FT.py"), "w") as f:
+        f.write("".join(contents))
+        f.close()
+
+    with open(os.path.join(_get_tests_path(build_name, version), "test_build_UT.py"), "w") as f:
+        f.write("".join(contents))
+        f.close()
+
+    Project = namedtuple('Project', 'src_path comp_path tests_path build_name version')
+    return Project(src_path, _get_compiled_path(build_name, version), _get_tests_path(build_name, version), build_name, version)
 
 def compile_build(build_name, version = ""):
     src_dir = _get_src_path(build_name, version=version)

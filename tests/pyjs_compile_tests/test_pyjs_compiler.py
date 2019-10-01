@@ -12,8 +12,8 @@ TRANSVERSE_SRC_DIR = os.path.join(ROOT_DIR, 'screeps-starter-python')
 
 @pytest.fixture()
 def temp_test_project():
-    src_path, comp_path = pjc.make_project("test_build")
-    yield src_path, comp_path
+    project = pjc.make_project("test_build")
+    yield project
     pjc.remove_build_folders("test_build")
 
 def test_make_folders_raises_error_on_invalid_build_name():
@@ -82,7 +82,8 @@ def test_compile_from_string_makes_and_removes_folders_from_no_build_dir():
     assert len(glob.glob(os.path.join(ROOT_DIR, ".pyjs_builds", ".tmp*"))) == 0
 
 def test_correctly_writes_string_to_file(temp_test_project):
-    src_path, comp_path = temp_test_project
+    src_path = temp_test_project.src_path
+    comp_path = temp_test_project.comp_path
     filepath = os.path.join(src_path,'test_file.py')
     pjc._write_string_to_file(filepath, "def main():\n\tprint('test_func')")
     assert os.path.isfile(filepath)
@@ -117,7 +118,8 @@ module.exports.loop = main
     assert "test_build_print" in js_src
 
 def test_function_call_to_make_project_returns_src_and_dist_paths(temp_test_project):
-    src_path, comp_path = temp_test_project
+    src_path = temp_test_project.src_path
+    comp_path = temp_test_project.comp_path
     assert src_path == pjc._get_src_path("test_build")
     assert comp_path == pjc._get_compiled_path("test_build")
 
@@ -125,7 +127,7 @@ def test_function_call_to_make_project_makes_folders(temp_test_project):
     assert os.path.isdir(pjc._get_build_path("test_build"))
 
 def test_function_call_to_make_project_moves_defs_to_src_dir(temp_test_project):
-    src_path, _ = temp_test_project
+    src_path = temp_test_project.src_path
     assert os.path.isdir(os.path.join(src_path,"defs"))
     constants_path = os.path.join(src_path, "defs", "constants.py")
     assert os.path.isfile(constants_path)
@@ -135,7 +137,7 @@ def test_function_call_to_make_project_moves_defs_to_src_dir(temp_test_project):
         constants_file.close()
 
 def test_function_call_to_make_project_defs_not_empty(temp_test_project):
-    src_path, _ = temp_test_project
+    src_path = temp_test_project.src_path
     constants_path = os.path.join(src_path, "defs", "constants.py")
     with open(constants_path, 'r') as constants_file:
         constants = constants_file.read()
@@ -143,12 +145,12 @@ def test_function_call_to_make_project_defs_not_empty(temp_test_project):
         constants_file.close()
 
 def test_function_call_to_make_project_makes_main(temp_test_project):
-    src_path, _ = temp_test_project
+    src_path = temp_test_project.src_path
     main_path = os.path.join(src_path, "main.py")
     assert os.path.isfile(main_path)
 
 def test_function_call_to_make_project_main_not_empty(temp_test_project):
-    src_path, _ = temp_test_project
+    src_path = temp_test_project.src_path
     main_path = os.path.join(src_path, "main.py")
     with open(main_path, 'r') as main_file:
         main = main_file.read()
@@ -156,7 +158,8 @@ def test_function_call_to_make_project_main_not_empty(temp_test_project):
         main_file.close()
 
 def test_compile_from_directory(temp_test_project):
-    src_path, comp_path = temp_test_project
+    src_path = temp_test_project.src_path
+    comp_path = temp_test_project.comp_path
     with open(os.path.join(src_path, "main.py"), "r") as f:
         contents = f.readlines()
         f.close()
@@ -173,3 +176,21 @@ def test_compile_from_directory(temp_test_project):
         f.close()
     assert "console.log ('buildtest:', Game.time);" in file_src
     
+def test_new_project_makes_tests_folder(temp_test_project):   
+    assert temp_test_project.tests_path is not None
+    assert os.path.isdir(temp_test_project.tests_path)
+
+def test_new_projects_makes_FT_and_UT_template_files(temp_test_project):
+    ut_file = os.path.join(temp_test_project.tests_path, "test_build_UT.py")
+    ft_file = os.path.join(temp_test_project.tests_path, "test_build_FT.py")
+    assert os.path.isfile(ut_file)
+    assert os.path.isfile(ft_file)
+    with open(ut_file, "r") as f:
+        file_src = f.read()
+        f.close()
+    assert 'build_name = "test_build"' in file_src
+
+    with open(ft_file, "r") as f:
+        file_src = f.read()
+        f.close()
+    assert 'build_name = "test_build"' in file_src

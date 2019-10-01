@@ -1,5 +1,10 @@
 BLUETEAM = True
 REDTEAM = False
+MELEE_ATT_RANGE=1
+RANGED_ATT_RANGE=3
+MELEE_ATT_DMG = 30
+RANGED_ATT_DMG = 10
+BASE_HP = 50
 
 import uuid
 import math
@@ -11,28 +16,27 @@ def target_closest_to(self, screeps):
 def maint_dist_to_target(self, screeps, dist=1):
     screeps = dict([(screep.uuid,screep) for screep in screeps])
     delta = screeps[self.target].posn - self.posn
-    print(self.uuid, self.posn, screeps[self.target].posn, delta)
     if delta >= 0: # target is to right of us
         # 20 - 10 = 10
         # -10 - -20 = 10
         move = delta - dist # Subtract target dist from distance to target to get desired move 
         # 10 - 8 = 2, move right 2
         # 10 - 12 = -2, move left 2
-    if delta < 0: # Target is to left of us
-        #print(move, self._posn + min(self.speed, abs(move)))
-        #return self._posn + min(self.speed, abs(move))
-        move = delta + dist
-
-    if self.speed < abs(move):
-        if move < 0:
-            move = -self.speed
-        if move > 0:
-            move = self.speed
-
-    return self._posn + move
         
+    if delta < 0: # Target is to left of us
+        # 10 - 20 = -10
+        # -20 - -10 = -10 
+        move = delta + dist # Add target dist from distance to target to get desired move
+        # -10 + 8 = -2 # move left 2
 
-# Issue: Attempting to move 1 right moves 1 left
+        #print(move, self._posn + min(self.speed, abs(move)))
+    if move > 0: #move right
+        return self._posn + min(self.speed, move)
+
+    if move < 0: #move left
+        return self._posn + max(-self.speed, move)
+
+    return self._posn
 
 class Screep:
 
@@ -44,16 +48,12 @@ class Screep:
     melee_att_mods = 0
     armor_mods = 0
     friendly = False
-    temp_hp = 100
+    hp = 100
     uuid = None
     target_func = None
     move_func = None
     target = None   
     _posn = None 
-
-    @property
-    def hp(self):
-        return temp_hp + armor * 50
 
     @property
     def melee_dmg(self):
@@ -73,8 +73,6 @@ class Screep:
         return math.floor(self._posn)
 
     def __init__(self, team:bool, posn:int, move=0, work=0, carry=0, heal=0, melee_att=0, range_att=0, armor=0, target_func=target_closest_to, move_func=lambda self, _: self.posn):
-        # if posn < 0:
-        #     raise Exception('Posn must by >= 0')
         self._posn = posn
         self.team = team
         self.move_mods = move
@@ -86,6 +84,7 @@ class Screep:
         self.uuid = str(uuid.uuid4())
         self.target_func = target_func 
         self.move_func = move_func
+        self.hp = BASE_HP + armor*50
 
     def __repr__(self):
         return self.uuid
@@ -94,6 +93,21 @@ class Screep:
         self.target = self.target_func(self, screeps).uuid
 
     def move(self, screeps):
-
+        if self.hp <= 0:
+            return False
         self._posn = self.move_func(self, screeps)
 
+    def attack(self, screeps):
+        if self.hp <= 0:
+            return False
+        target = dict([(screep.uuid,screep) for screep in screeps]).get(self.target)
+        range_to_target = abs(abs(self.posn)-abs(target.posn))
+        if self.melee_att_mods > 0 and range_to_target <= MELEE_ATT_RANGE:
+            target.hp -= self.melee_att_mods * MELEE_ATT_DMG
+            target.attack_back(self)
+        if self.range_att_mods > 0 and range_to_target <= RANGED_ATT_RANGE:
+            target.hp -= self.range_att_mods * RANGED_ATT_DMG
+    
+    def attack_back(self, screep):
+        if self.hp > 0:
+            screep.hp -= self.melee_att_mods * MELEE_ATT_DMG

@@ -93,12 +93,13 @@ app.post('/tick',async function(req,res){
 		console.log('Tick '+ await server.world.gameTime);
 		
 		for (const bot of bots){
+			console.log("bid "+await bot.rooms)
 			notifications = [];
 			_.forEach(await bot.newNotifications, ({ message }) => notifications.push('[notification]', message));
 			notification_logs[bot.username] = notifications;
 			memory_logs[bot.username] = JSON.parse(await bot.memory);
 		};
-		res.status(200).json({'logs': {'bot_logs': bot_logs, 'notification_logs': notification_logs, 'memory_logs': memory_logs}, 'gametime': false, 'room': await server.world.roomObjects('W0N1')})
+		res.status(200).json({'logs': {'bot_logs': bot_logs, 'notification_logs': notification_logs, 'memory_logs': memory_logs}, 'gametime': await server.world.gameTime -1, 'users': await server.driver.getAllUsers(), 'rooms': await server.world.roomObjects()})
 	}
 	catch(error){
 		console.log(error)

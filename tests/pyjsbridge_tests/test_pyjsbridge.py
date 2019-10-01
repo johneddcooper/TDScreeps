@@ -153,6 +153,34 @@ def test_logs_report_correct_game_time(pyjsbridge):
     assert str(response[0]['gametime']) in response[0]['logs']['bot_logs']['TickBot'][0]
     assert str(response[2]['gametime']) in response[2]['logs']['bot_logs']['TickBot'][0]
 
+def test_tick_returns_rooms(pyjsbridge):
+    pyjsbridge.reset_world()
+    pyjsbridge.make_stub_world()
+    pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, """function () {\n    console.log(Game.time);\n}""")
+    pyjsbridge.start_server()
+    response = pyjsbridge.tick(ticks = 1)
+
+    # print(response[0])
+    assert response[0]['rooms'] is not None
+    spawns = list(filter(lambda x: x['room'] == 'W0N1' and x['type'] == 'spawn', response[0]['rooms']))
+    assert len(spawns) == 1
+
+    assert spawns[0]['x'] == 15
+    assert spawns[0]['y'] == 15 
+
+def test_tick_returns_users(pyjsbridge):
+    pyjsbridge.reset_world()
+    pyjsbridge.make_stub_world()
+    pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, """function () {\n    console.log(Game.time);\n}""")
+    pyjsbridge.start_server()
+    response = pyjsbridge.tick(ticks = 1)
+
+    assert response[0]['users'] is not None
+    user = list(filter(lambda x: x['username'] == 'TickBot', response[0]['users']))
+    assert len(user) == 1
+    assert 'W0N1' in user[0]['rooms']
+    
+
 # def test_can_spawn_multi_screep_for_single_bot(pyjsbridge):
 #     bot_main = """
 #         function () {

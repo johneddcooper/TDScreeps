@@ -162,7 +162,7 @@ def test_tick_returns_rooms(pyjsbridge):
 
     # print(response[0])
     assert response[0].rooms is not None
-    spawns = list(filter(lambda x: x['type']== 'spawn', response[0].rooms['W0N1']))
+    spawns = response[0].rooms['W0N1']['spawn']
     assert len(spawns) == 1
     assert spawns[0]['x'] == 15
     assert spawns[0]['y'] == 15 

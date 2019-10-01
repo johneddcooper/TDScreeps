@@ -78,9 +78,10 @@ class PyBridge:
 
 def tick_response_to_objects(response):
     Log = namedtuple("Log", "bot_logs notification_logs memory_logs gametime users rooms")
-    rooms = defaultdict(list)
+    rooms = defaultdict(lambda: defaultdict(list))
     for struct in response['rooms']:
-        rooms[struct['room']].append(struct)
+        rooms[struct['room']][struct['type']].append(struct)
+
     log = Log(
         response['bot_logs'],
         response['notification_logs'],
@@ -90,3 +91,4 @@ def tick_response_to_objects(response):
         rooms
     )
     return log
+

@@ -8,6 +8,8 @@ sys.path.append('../../')
 from definitions import ROOT_DIR
 path_to_jsbridge = os.path.join(ROOT_DIR, 'py-screeps-server-mockup/jsbridge.js')
 
+from collections import namedtuple, defaultdict
+
 jsbridge_url = "http://localhost:3000"
 headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
@@ -57,16 +59,34 @@ class PyBridge:
         r = requests.post(jsbridge_url+"/start_server", timeout = 5)
         return True if r.status_code==200 else False
 
+
+
     def tick(self, ticks=1):
         response = []
         for tick in range(ticks):
             r = requests.post(jsbridge_url +"/tick", timeout = 5)
             if r.status_code != 200:
                 return False 
-            response.append(r.json())
+            response.append(tick_response_to_objects(r.json()))
         return response
+
 
     def add_bot(self, username, room, x, y, main):
         msgData = {'username':username, 'room':room, 'x':x, 'y':y, 'main':main}
         r = requests.post(jsbridge_url+"/world/addBot", timeout = 2,  headers=headers, data=json.dumps({'msg':msgData}))
         return True if r.status_code == 201 else False
+
+def tick_response_to_objects(response):
+    Log = namedtuple("Log", "bot_logs notification_logs memory_logs gametime users rooms")
+    rooms = defaultdict(list)
+    for struct in response['rooms']:
+        rooms[struct['room']].append(struct)
+    log = Log(
+        response['bot_logs'],
+        response['notification_logs'],
+        response['memory_logs'],
+        response['gametime'],
+        { user['username']: user for user in response['users'] },
+        rooms
+    )
+    return log

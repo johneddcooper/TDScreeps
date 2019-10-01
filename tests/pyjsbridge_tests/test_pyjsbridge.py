@@ -61,16 +61,16 @@ def test_tick_server_once(pyjsbridge):
     pyjsbridge.start_server()
     response = pyjsbridge.tick()
     assert len(response) == 1
-    assert 'gametime' in response[0]
-    assert response[0]['gametime'] == 1
+    assert 'gametime' in response[0]._fields
+    assert response[0].gametime == 1
     
 def test_tick_server_multi(pyjsbridge):
     pyjsbridge.make_stub_world()
     pyjsbridge.start_server()
     r = pyjsbridge.tick(ticks = 5)
     assert len(r) == 5
-    assert r[0]['gametime'] == 1
-    assert r[4]['gametime'] == 5
+    assert r[0].gametime == 1
+    assert r[4].gametime == 5
 
 def test_add_bot_to_server(pyjsbridge):
     pyjsbridge.make_stub_world()
@@ -83,9 +83,9 @@ def test_capture_single_bot_logs_on_tick(pyjsbridge):
     pyjsbridge.start_server()
     response = pyjsbridge.tick(ticks = 3)
     assert len(response) == 3
-    assert len(response[0]['logs']['bot_logs']) == 1
-    assert 'TickBot_out' in response[0]['logs']['bot_logs']['TickBot'][0]
-    assert 'TickBot_out' in response[2]['logs']['bot_logs']['TickBot'][0]
+    assert len(response[0].bot_logs) == 1
+    assert 'TickBot_out' in response[0].bot_logs['TickBot'][0]
+    assert 'TickBot_out' in response[2].bot_logs['TickBot'][0]
 
 def test_capture_error_on_invalid_string(pyjsbridge):
     pyjsbridge.reset_world()
@@ -94,9 +94,9 @@ def test_capture_error_on_invalid_string(pyjsbridge):
     pyjsbridge.start_server()
     response = pyjsbridge.tick(ticks = 1)
     assert len(response) == 1
-    assert len(response[0]['logs']['notification_logs']) == 1
-    assert 'notification' in response[0]['logs']['notification_logs']['TickBot'][0]
-    assert 'TypeError' in response[0]['logs']['notification_logs']['TickBot'][1]
+    assert len(response[0].notification_logs) == 1
+    assert 'notification' in response[0].notification_logs['TickBot'][0]
+    assert 'TypeError' in response[0].notification_logs['TickBot'][1]
   
 
 def test_capture_single_bot_multiple_logs_on_tick(pyjsbridge):
@@ -106,10 +106,10 @@ def test_capture_single_bot_multiple_logs_on_tick(pyjsbridge):
     pyjsbridge.start_server()
     response = pyjsbridge.tick(ticks = 3)
     assert len(response) == 3
-    assert len(response[0]['logs']['bot_logs']) == 1
-    assert len(response[0]['logs']['bot_logs']['TickBot']) == 2
-    assert 'TickBot_out 0' in response[0]['logs']['bot_logs']['TickBot'][0]
-    assert 'TickBot_out 1' in response[2]['logs']['bot_logs']['TickBot'][1]
+    assert len(response[0].bot_logs) == 1
+    assert len(response[0].bot_logs['TickBot']) == 2
+    assert 'TickBot_out 0' in response[0].bot_logs['TickBot'][0]
+    assert 'TickBot_out 1' in response[2].bot_logs['TickBot'][1]
 
 def test_capture_multiple_bot_logs_on_tick(pyjsbridge):
     pyjsbridge.reset_world()
@@ -121,11 +121,11 @@ def test_capture_multiple_bot_logs_on_tick(pyjsbridge):
     pyjsbridge.start_server()
     response = pyjsbridge.tick(ticks = 1)
     assert len(response) == 1
-    assert len(response[0]['logs']['bot_logs']) == 3
+    assert len(response[0].bot_logs) == 3
     print(response)
-    assert 'TickBot1 output' in response[0]['logs']['bot_logs']['TickBot1'][0]
-    assert 'TickBot2 output' in response[0]['logs']['bot_logs']['TickBot2'][0]
-    assert 'TickBot3 output' in response[0]['logs']['bot_logs']['TickBot3'][0]
+    assert 'TickBot1 output' in response[0].bot_logs['TickBot1'][0]
+    assert 'TickBot2 output' in response[0].bot_logs['TickBot2'][0]
+    assert 'TickBot3 output' in response[0].bot_logs['TickBot3'][0]
     
 def test_can_spawn_screep_for_single_bot(pyjsbridge):
     bot_main = """
@@ -142,7 +142,7 @@ def test_can_spawn_screep_for_single_bot(pyjsbridge):
     pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, bot_main)
     pyjsbridge.start_server()
     response = pyjsbridge.tick(ticks = 1)
-    assert len(response[0]['logs']['memory_logs']['TickBot']['creeps']) == 1
+    assert len(response[0].memory_logs['TickBot']['creeps']) == 1
 
 def test_logs_report_correct_game_time(pyjsbridge):
     pyjsbridge.reset_world()
@@ -150,8 +150,8 @@ def test_logs_report_correct_game_time(pyjsbridge):
     pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, """function () {\n    console.log(Game.time);\n}""")
     pyjsbridge.start_server()
     response = pyjsbridge.tick(ticks = 3)
-    assert str(response[0]['gametime']) in response[0]['logs']['bot_logs']['TickBot'][0]
-    assert str(response[2]['gametime']) in response[2]['logs']['bot_logs']['TickBot'][0]
+    assert str(response[0].gametime) in response[0].bot_logs['TickBot'][0]
+    assert str(response[2].gametime) in response[2].bot_logs['TickBot'][0]
 
 def test_tick_returns_rooms(pyjsbridge):
     pyjsbridge.reset_world()
@@ -161,10 +161,9 @@ def test_tick_returns_rooms(pyjsbridge):
     response = pyjsbridge.tick(ticks = 1)
 
     # print(response[0])
-    assert response[0]['rooms'] is not None
-    spawns = list(filter(lambda x: x['room'] == 'W0N1' and x['type'] == 'spawn', response[0]['rooms']))
+    assert response[0].rooms is not None
+    spawns = list(filter(lambda x: x['type']== 'spawn', response[0].rooms['W0N1']))
     assert len(spawns) == 1
-
     assert spawns[0]['x'] == 15
     assert spawns[0]['y'] == 15 
 
@@ -175,10 +174,9 @@ def test_tick_returns_users(pyjsbridge):
     pyjsbridge.start_server()
     response = pyjsbridge.tick(ticks = 1)
 
-    assert response[0]['users'] is not None
-    user = list(filter(lambda x: x['username'] == 'TickBot', response[0]['users']))
-    assert len(user) == 1
-    assert 'W0N1' in user[0]['rooms']
+    assert response[0].users is not None
+    assert len(response[0].users) == 1
+    assert 'W0N1' in response[0].users['TickBot']['rooms']
     
 
 # def test_can_spawn_multi_screep_for_single_bot(pyjsbridge):

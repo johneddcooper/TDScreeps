@@ -99,7 +99,7 @@ app.post('/tick',async function(req,res){
 			notification_logs[bot.username] = notifications;
 			memory_logs[bot.username] = JSON.parse(await bot.memory);
 		};
-		res.status(200).json({'logs': {'bot_logs': bot_logs, 'notification_logs': notification_logs, 'memory_logs': memory_logs}, 'gametime': await server.world.gameTime -1, 'users': await server.driver.getAllUsers(), 'rooms': await server.world.roomObjects()})
+		res.status(200).json({'bot_logs': bot_logs, 'notification_logs': notification_logs, 'memory_logs': memory_logs, 'gametime': await server.world.gameTime -1, 'users': await server.driver.getAllUsers(), 'rooms': await server.world.roomObjects()})
 	}
 	catch(error){
 		console.log(error)

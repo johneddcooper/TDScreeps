@@ -132,17 +132,25 @@ def test_can_spawn_screep_for_single_bot(pyjsbridge):
         function () {
             console.log('Tickbot!',Game.time);
             const directions = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
-            _.sample(Game.spawns).createCreep([MOVE]);
+            _.sample(Game.spawns).createCreep([MOVE,MOVE]);
             _.each(Game.creeps, c => c.move(_.sample(directions)));
         }
     """
-    
     pyjsbridge.reset_world()
-    pyjsbridge.make_stub_world()
+    pyjsbridge.add_simple_room('W0N1')
     pyjsbridge.add_bot('TickBot', 'W0N1', 15, 15, bot_main)
     pyjsbridge.start_server()
+    response = pyjsbridge.tick(ticks = 5)
+    assert len(response[-1].memory_logs['TickBot']['creeps']) == 1
+    assert response[-1].rooms['W0N1']['spawn'][0]['spawning']['remainingTime'] == 1
+    assert response[-1].rooms['W0N1']['creep'][0]['spawning'] == True
+
     response = pyjsbridge.tick(ticks = 1)
-    assert len(response[0].memory_logs['TickBot']['creeps']) == 1
+    assert len(response[-1].memory_logs['TickBot']['creeps']) == 1
+    assert response[-1].rooms['W0N1']['creep'][0]['spawning'] is False
+    assert response[-1].rooms['W0N1']['spawn'][0]['spawning'] is None
+    assert response[-1].rooms['W0N1']['creep'][0]['x'] != 15 or response[-1].rooms['W0N1']['creep'][0]['y'] != 15
+    print(response[-1].rooms['W0N1']['creep'])
 
 def test_logs_report_correct_game_time(pyjsbridge):
     pyjsbridge.reset_world()

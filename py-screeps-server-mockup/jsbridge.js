@@ -2,7 +2,7 @@ var app = require("express")();
 
 var http = require('http').Server(app);
 var bodyParser = require('body-parser');
-const { ScreepsServer } = require('./screeps-server-mockup');
+const { ScreepsServer, TerrainMatrix } = require('./screeps-server-mockup');
 const _ = require('./screeps-server-mockup/node_modules/lodash');
 const server = new ScreepsServer();
 var bot_logs = []
@@ -21,7 +21,6 @@ app.post('/',function(req,res){
 app.post('/reset',async function(req,res){
 	console.log("Resetting world.");
 	bots = []
-	var result
 	try{
 		await server.world.reset();
 	}
@@ -67,6 +66,29 @@ app.post('/world/addRoom',async function(req,res){
 	}
 });
 
+app.post('/world/addRoom/simple',async function(req,res){
+	room = req.body.msg
+	console.log("Making simple room as ",room);
+	
+	try{
+		const terrain = new TerrainMatrix();
+		const walls = [[10, 10], [10, 40], [40, 10], [40, 40]];
+		_.each(walls, ([x, y]) => terrain.set(x, y, 'wall'));
+
+		//Create a new room with terrain and basic objects
+		await server.world.addRoom(room);
+		await server.world.setTerrain(room, terrain);
+		await server.world.addRoomObject(room, 'controller', 10, 10, { level: 0 });
+		await server.world.addRoomObject(room, 'source', 10, 40, { energy: 1000, energyCapacity: 1000, ticksToRegeneration: 300 });
+		await server.world.addRoomObject(room, 'mineral', 40, 40, { mineralType: 'H', density: 3, mineralAmount: 3000 });
+		res.status(201).send()
+	}
+	catch(error){
+		console.log(error)
+		res.status(500).json({"error":error})
+	}
+});
+
 app.post('/start_server',async function(req,res){
 	console.log("Starting server");
 	try{
@@ -80,25 +102,38 @@ app.post('/start_server',async function(req,res){
 });
 
 app.post('/tick',async function(req,res){
-	bot_logs = {};
-	notification_logs = {};
-	memory_logs = {};
 
-	_.forEach(bots, function(bot){
-		bot_logs[bot.username] = [];
-	});
+	return_log = []
 
+	const num_ticks = req.body.msg.ticks;
+
+	console.log("ticking for ",num_ticks)
+	
 	try{
-		await server.tick();
-		console.log('Tick '+ await server.world.gameTime);
+	
+		for (tick = 0; tick < num_ticks; tick++ ){
+
+			bot_logs = {};
+			notification_logs = {};
+			memory_logs = {};
 		
-		for (const bot of bots){
-			notifications = [];
-			_.forEach(await bot.newNotifications, ({ message }) => notifications.push('[notification]', message));
-			notification_logs[bot.username] = notifications;
-			memory_logs[bot.username] = JSON.parse(await bot.memory);
-		};
-		res.status(200).json({'bot_logs': bot_logs, 'notification_logs': notification_logs, 'memory_logs': memory_logs, 'gametime': await server.world.gameTime -1, 'users': await server.driver.getAllUsers(), 'rooms': await server.world.roomObjects()})
+			_.forEach(bots, function(bot){
+				bot_logs[bot.username] = [];
+			});
+
+			await server.tick();
+			
+			console.log('Tick '+ await server.world.gameTime);
+			
+			for (const bot of bots){
+				notifications = [];
+				_.forEach(await bot.newNotifications, ({ message }) => notifications.push('[notification]', message));
+				notification_logs[bot.username] = notifications;
+				memory_logs[bot.username] = JSON.parse(await bot.memory);
+			};
+			return_log[tick] = {'bot_logs': bot_logs, 'notification_logs': notification_logs, 'memory_logs': memory_logs, 'gametime': await server.world.gameTime -1, 'users': await server.driver.getAllUsers(), 'rooms': await server.world.roomObjects()}
+		}
+		res.status(200).json(return_log)	
 	}
 	catch(error){
 		console.log(error)
@@ -108,13 +143,12 @@ app.post('/tick',async function(req,res){
 });
 
 app.post('/stop',async function(req,res){
-	console.log("Stoping server");
+	console.log("Stoping server /stop");
 	try{
 		await server.stop()
 		res.status(200).send()
 	}
 	catch(error){
-		console.log(error)
 		res.status(500).json({"error":error})
 	}
 	process.exit()

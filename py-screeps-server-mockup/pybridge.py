@@ -51,8 +51,11 @@ class PyBridge:
         return r.json() if r.status_code==200 else False
 
     def add_room(self, room_name):
-        #headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         r = requests.post(jsbridge_url+"/world/addRoom", timeout = 5,  headers=headers, data=json.dumps({'msg':room_name}))
+        return True if r.status_code == 201 else False
+
+    def add_simple_room(self, room_name):
+        r = requests.post(jsbridge_url+"/world/addRoom/simple", timeout = 5,  headers=headers, data=json.dumps({'msg':room_name}))
         return True if r.status_code == 201 else False
 
     def start_server(self):
@@ -62,14 +65,17 @@ class PyBridge:
 
 
     def tick(self, ticks=1):
-        response = []
-        for tick in range(ticks):
-            r = requests.post(jsbridge_url +"/tick", timeout = 5)
-            if r.status_code != 200:
-                return False 
-            response.append(tick_response_to_objects(r.json()))
-        return response
 
+        msgData = {'ticks':ticks}
+        r = requests.post(jsbridge_url+"/tick", timeout = 5,  headers=headers, data=json.dumps({'msg':msgData}))
+ 
+        return  [tick_response_to_objects(log) for log in r.json()]
+      
+
+    def start_tick(self):
+        response = []
+        requests.post(jsbridge_url +"/start_tick")
+        
 
     def add_bot(self, username, room, x, y, main):
         msgData = {'username':username, 'room':room, 'x':x, 'y':y, 'main':main}
